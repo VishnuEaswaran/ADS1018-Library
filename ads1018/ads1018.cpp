@@ -3,7 +3,7 @@
 *  Internal Reference and Temperature Sensor
 *  
 *  @author Vishnu Easwaran E <easwaranvishnu@gmail.com>
-* derived from the work of Alvaro Salazar <alvaro@denkitronik.com>
+*  derived from the work of Alvaro Salazar <alvaro@denkitronik.com>
 *
 */
 
@@ -71,7 +71,7 @@ void ADS1018::begin() {
     SPI.begin();
     SPI.beginTransaction(SPISettings(SCLK, MSBFIRST, SPI_MODE1));
 	configRegister.bits={RESERVED, VALID_CFG, PULLUP, TEMP_MODE, RATE_3300SPS, CONTINUOUS, FSR_4096, AIN_0, START_NOW}; //Default values
-    DEBUG_BEGIN(configRegister); //Debug this method: print the config register in the Serial port
+    DEBUG_BEGIN(configRegister); 										//Debug this method: print the config register in the Serial port
 }
 
 /*
@@ -82,9 +82,9 @@ double ADS1018::getTemperature() {
     uint16_t convRegister;
     uint8_t  dataMSB, dataLSB, configMSB, configLSB, count=0;
 	if(lastSensorMode==TEMP_MODE)
-		count=1;  //Lucky you! We don't have to read twice the sensor
+		count=1;  									//Lucky you! We don't have to read twice the sensor
 	else
-		configRegister.bits.sensorMode=TEMP_MODE; //Sorry but we will have to read twice the sensor
+		configRegister.bits.sensorMode=TEMP_MODE;	//Sorry but we will have to read twice the sensor
     do{
 		digitalWrite(cs, LOW);
 		delayMicroseconds(10);
@@ -95,15 +95,15 @@ double ADS1018::getTemperature() {
 		digitalWrite(cs, HIGH);
 		delayMicroseconds(10);  
 		count++;
-	}while (count<=1);  //We make two readings because the second reading is the temperature.
+	}while (count<=1);	//We make two readings because the second reading is the temperature.
     
-	// DEBUG_GETTEMPERATURE(configRegister);  //Debug this method: print the config register in the Serial port
+	// DEBUG_GETTEMPERATURE(configRegister);	//Debug this method: print the config register in the Serial port
 
-	convRegister = (((dataMSB)<<8 | (dataLSB)) >> 4); //Moving MSB and LSB to 16 bit and making it right-justified; 4 because 12bit value
-	convRegister &= 0x0FFF; //Making sure first 4 bits are 0
+	convRegister = (((dataMSB)<<8 | (dataLSB)) >> 4);	//Moving MSB and LSB to 16 bit and making it right-justified; 4 because 12bit value
+	convRegister &= 0x0FFF; 							//Making sure first 4 bits are 0
 
     if((convRegister) >= 0x0800){
-		convRegister=((~convRegister)+1 & 0x0fff); //Applying binary twos complement format
+		convRegister=((~convRegister)+1 & 0x0fff);	//Applying binary twos complement format
         return (double)(convRegister*0.125*-1);
     }
     return (double)convRegister*0.125;
@@ -185,7 +185,7 @@ void ADS1018::decodeConfigRegister(union Config configRegister){
     message+=" ";
 	switch(configRegister.bits.pga){
 		case 0: message+="6.144"; break;
-	    case 1: message+="4.096"; break;
+	    	case 1: message+="4.096"; break;
 		case 2: message+="2.048"; break;
 		case 3: message+="1.024"; break;
 		case 4: message+="0.512"; break;
@@ -196,7 +196,7 @@ void ADS1018::decodeConfigRegister(union Config configRegister){
     message+=" ";		
 	switch(configRegister.bits.operatingMode){
 		case 0: message+="CONT."; break;
-	    case 1: message+="SSHOT"; break;
+	   	case 1: message+="SSHOT"; break;
 	}
     message+=" ";		
 	switch(configRegister.bits.rate){
@@ -232,5 +232,4 @@ void ADS1018::decodeConfigRegister(union Config configRegister){
 	}	
 	Serial.println("\nSTART MXSEL PGASL MODES RATES  ADTMP PLLUP NOOPE RESER");
 	Serial.println(message);
-
 }
