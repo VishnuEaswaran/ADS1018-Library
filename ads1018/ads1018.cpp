@@ -59,19 +59,19 @@
  * @param io_pin_cs a byte indicating the pin to be use as the chip select pin (CS)
  */
 ADS1018::ADS1018(uint8_t io_pin_cs) {
-    cs = io_pin_cs;
+	cs = io_pin_cs;
 }
 
 /*
  * This method initialize the SPI port and the config register
  */
 void ADS1018::begin() {
-    pinMode(cs, OUTPUT);
+	pinMode(cs, OUTPUT);
 	digitalWrite(cs, HIGH);
-    SPI.begin();
-    SPI.beginTransaction(SPISettings(SCLK, MSBFIRST, SPI_MODE1));
+	SPI.begin();
+	SPI.beginTransaction(SPISettings(SCLK, MSBFIRST, SPI_MODE1));
 	configRegister.bits={RESERVED, VALID_CFG, PULLUP, TEMP_MODE, RATE_3300SPS, CONTINUOUS, FSR_4096, AIN_0, START_NOW}; //Default values
-    DEBUG_BEGIN(configRegister);					   //Debug this method: print the config register in the Serial port
+	DEBUG_BEGIN(configRegister);					   //Debug this method: print the config register in the Serial port
 }
 
 /*
@@ -79,35 +79,35 @@ void ADS1018::begin() {
  * @return A double (32bits) containing the temperature in degrees celsius of the internal sensor
  */
 double ADS1018::getTemperature() {
-    uint16_t convRegister;
-    uint8_t  dataMSB, dataLSB, configMSB, configLSB, count=0;
-	if(lastSensorMode==TEMP_MODE)
-		count=1;					//Lucky you! We don't have to read twice the sensor
-	else
-		configRegister.bits.sensorMode=TEMP_MODE;	//Sorry but we will have to read twice the sensor
-    do{
-		digitalWrite(cs, LOW);
-		delayMicroseconds(10);
-		dataMSB = SPI.transfer(configRegister.byte.msb);
-		dataLSB = SPI.transfer(configRegister.byte.lsb);
-		configMSB = SPI.transfer(configRegister.byte.msb);
-		configLSB = SPI.transfer(configRegister.byte.lsb);
-		digitalWrite(cs, HIGH);
-		delayMicroseconds(10);  
-		count++;
-	}while (count<=1);					//We make two readings because the second reading is the temperature.
-    
-	// DEBUG_GETTEMPERATURE(configRegister);		//Debug this method: print the config register in the Serial port
+	uint16_t convRegister;
+	uint8_t  dataMSB, dataLSB, configMSB, configLSB, count=0;
+		if(lastSensorMode==TEMP_MODE)
+			count=1;					//Lucky you! We don't have to read twice the sensor
+		else
+			configRegister.bits.sensorMode=TEMP_MODE;	//Sorry but we will have to read twice the sensor
+	do {
+			digitalWrite(cs, LOW);
+			delayMicroseconds(10);
+			dataMSB   = SPI.transfer(configRegister.byte.msb);
+			dataLSB   = SPI.transfer(configRegister.byte.lsb);
+			configMSB = SPI.transfer(configRegister.byte.msb);
+			configLSB = SPI.transfer(configRegister.byte.lsb);
+			digitalWrite(cs, HIGH);
+			delayMicroseconds(10);  
+			count++;
+	} while (count<=1);						//We make two readings because the second reading is the temperature.
 
-	convRegister = (((dataMSB)<<8 | (dataLSB)) >> 4);	//Moving MSB and LSB to 16 bit and making it right-justified; 4 because 12bit value
-	convRegister &= 0x0FFF; 				//Making sure first 4 bits are 0
+	// DEBUG_GETTEMPERATURE(configRegister);			//Debug this method: print the config register in the Serial port
 
-    if((convRegister) >= 0x0800){
-		convRegister=((~convRegister)+1 & 0x0fff);	//Applying binary twos complement format
-        return (double)(convRegister*0.125*-1);
-    }
-    return (double)convRegister*0.125;
-}
+	convRegister  = (((dataMSB)<<8 | (dataLSB)) >> 4);		//Moving MSB and LSB to 16 bit and making it right-justified; 4 because 12bit value
+	convRegister &= 0x0FFF; 					//Making sure first 4 bits are 0
+
+	if((convRegister) >= 0x0800) {
+		convRegister=((~convRegister)+1 & 0x0fff);		//Applying binary twos complement format
+		return (double)(convRegister*0.125*-1);
+	}
+	return (double)convRegister*0.125;
+}		
 
 /*
  * Setting the sampling rate specified in the config register
@@ -201,7 +201,7 @@ void ADS1018::decodeConfigRegister(union Config configRegister){
     message+=" ";		
 	switch(configRegister.bits.rate){
 		case 0: message+="128SPS"; break;
-	    case 1: message+="250SPS"; break;
+	    	case 1: message+="250SPS"; break;
 		case 2: message+="490SPS"; break;
 		case 3: message+="920SPS"; break;
 		case 4: message+="1600SP"; break;
@@ -211,24 +211,24 @@ void ADS1018::decodeConfigRegister(union Config configRegister){
     message+=" ";		
 	switch(configRegister.bits.sensorMode){
 		case 0: message+="ADC_M"; break;
-	    case 1: message+="TMP_M"; break;
+	   	case 1: message+="TMP_M"; break;
 	}
     message+=" ";		
 	switch(configRegister.bits.pullUp){
 		case 0: message+="DISAB"; break;
-	    case 1: message+="ENABL"; break;
+	    	case 1: message+="ENABL"; break;
 	}
     message+=" ";		
 	switch(configRegister.bits.noOperation){
 		case 0: message+="INVAL"; break;
-	    case 1: message+="VALID"; break;
+	   	case 1: message+="VALID"; break;
 		case 2: message+="INVAL"; break;
 		case 3: message+="INVAL"; break;
 	}
     message+=" ";		
 	switch(configRegister.bits.reserved){
 		case 0: message+="RSRV0"; break;
-	    case 1: message+="RSRV1"; break;
+	    	case 1: message+="RSRV1"; break;
 	}	
 	Serial.println("\nSTART MXSEL PGASL MODES RATES  ADTMP PLLUP NOOPE RESER");
 	Serial.println(message);
